@@ -9,7 +9,7 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "Osrs.Skills"
-        [ test "emptyTable returns an empty table" <|
+        [ test "emptyTable |> experienceList returns a properly-sized empty list" <|
             \_ ->
                 Skills.emptyTable
                     |> Skills.experienceList
