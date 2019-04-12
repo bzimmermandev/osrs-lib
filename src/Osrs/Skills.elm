@@ -1,4 +1,4 @@
-module Osrs.Skills exposing (Skill, Table, emptyTable, experience, experienceForLevel, experienceToNextLevel, level, names, totalExperience, updateTable)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, emptyTable, experience, experienceForLevel, experienceList, experienceToNextLevel, level, names, totalExperience, updateTable)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -8,8 +8,16 @@ type alias Skill =
     String
 
 
+type alias Experience =
+    Int
+
+
+type alias Level =
+    Int
+
+
 type Table
-    = Table (Dict Skill Int)
+    = Table (Dict Skill Experience)
 
 
 names : List Skill
@@ -48,7 +56,7 @@ emptyTable =
         |> Table
 
 
-updateTable : Skill -> Int -> Table -> Table
+updateTable : Skill -> Experience -> Table -> Table
 updateTable skill xp ((Table dict) as table) =
     if List.member skill names then
         -- if given a valid skill name, update the xp entry
@@ -59,22 +67,27 @@ updateTable skill xp ((Table dict) as table) =
         table
 
 
-experience : Skill -> Table -> Int
+experienceList : Table -> List Experience
+experienceList (Table dict) =
+    Dict.values dict
+
+
+totalExperience : Table -> Experience
+totalExperience table =
+    experienceList table
+        |> List.sum
+
+
+experience : Skill -> Table -> Experience
 experience skill (Table dict) =
     Dict.get skill dict
         -- if the skill name is invalid, return 0 xp by default
         -- note: this default behavior is to reduce API complexity and should
-        --       be sufficient if you're relying on `names` as intended
+        --       be sufficient if you're relying on strings from `names` only
         |> Maybe.withDefault 0
 
 
-totalExperience : Table -> Int
-totalExperience (Table dict) =
-    Dict.values dict
-        |> List.sum
-
-
-experienceToNextLevel : Int -> Int
+experienceToNextLevel : Experience -> Experience
 experienceToNextLevel xp =
     experienceForLevel (level xp + 1)
         -- default to 200m xp as the next level
@@ -82,13 +95,13 @@ experienceToNextLevel xp =
         |> (\nextXp -> nextXp - xp)
 
 
-experienceForLevel : Int -> Maybe Int
+experienceForLevel : Level -> Maybe Experience
 experienceForLevel lvl =
-    Array.get (lvl - 1) levelsArray
+    Array.get (lvl - 1) levelLookup
         |> Maybe.map Tuple.second
 
 
-level : Int -> Int
+level : Experience -> Level
 level xp =
     Array.foldl
         (\( lvl, milestone ) highestLvl ->
@@ -99,15 +112,16 @@ level xp =
                 highestLvl
         )
         1
-        levelsArray
+        levelLookup
 
 
 
 {- helper functions for level calculations -}
 
 
-levelsArray : Array ( Int, Int )
-levelsArray =
+levelLookup : Array ( Level, Experience )
+levelLookup =
+    -- NOTE it may make more sense to hardcode the array instead of generating it
     let
         calculateXp index =
             List.range 1 index
