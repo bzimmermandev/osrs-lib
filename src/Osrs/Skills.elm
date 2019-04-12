@@ -1,4 +1,4 @@
-module Osrs.Skills exposing (Experience, Level, Skill, Table, emptyTable, experience, experienceForLevel, experienceList, experienceToNextLevel, level, names, totalExperience, updateTable)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, emptyTable, experience, experienceAtLevel, experienceList, level, names, remainingExperience, totalExperience, updateTable)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -24,7 +24,7 @@ names : List Skill
 names =
     [ "Attack"
     , "Strength"
-    , "Defense"
+    , "Defence"
     , "Ranged"
     , "Prayer"
     , "Magic"
@@ -67,6 +67,15 @@ updateTable skill xp ((Table dict) as table) =
         table
 
 
+experience : Skill -> Table -> Experience
+experience skill (Table dict) =
+    Dict.get skill dict
+        -- if the skill name is invalid, return 0 xp by default
+        -- note: this default behavior is to reduce API complexity and should
+        --       be sufficient if you're relying on strings from `names` only
+        |> Maybe.withDefault 0
+
+
 experienceList : Table -> List Experience
 experienceList (Table dict) =
     Dict.values dict
@@ -78,25 +87,16 @@ totalExperience table =
         |> List.sum
 
 
-experience : Skill -> Table -> Experience
-experience skill (Table dict) =
-    Dict.get skill dict
-        -- if the skill name is invalid, return 0 xp by default
-        -- note: this default behavior is to reduce API complexity and should
-        --       be sufficient if you're relying on strings from `names` only
-        |> Maybe.withDefault 0
-
-
-experienceToNextLevel : Experience -> Experience
-experienceToNextLevel xp =
-    experienceForLevel (level xp + 1)
+remainingExperience : Experience -> Experience
+remainingExperience xp =
+    experienceAtLevel (level xp + 1)
         -- default to 200m xp as the next level
         |> Maybe.withDefault 200000000
         |> (\nextXp -> nextXp - xp)
 
 
-experienceForLevel : Level -> Maybe Experience
-experienceForLevel lvl =
+experienceAtLevel : Level -> Maybe Experience
+experienceAtLevel lvl =
     Array.get (lvl - 1) levelLookup
         |> Maybe.map Tuple.second
 
