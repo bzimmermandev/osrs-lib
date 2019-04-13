@@ -1,4 +1,4 @@
-module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, level, names, remainingExperience, totalExperience, totalLevel, updateExperience)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, getLevels, level, names, remainingExperience, totalExperience, totalLevel, updateExperience)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -81,6 +81,12 @@ getLevel : Skill -> Table -> Level
 getLevel skill table =
     getExperience skill table
         |> level
+
+
+getLevels : List Skill -> Table -> List Level
+getLevels skills table =
+    skills
+        |> List.map (\skill -> getLevel skill table)
 
 
 level : Experience -> Level

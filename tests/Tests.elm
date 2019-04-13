@@ -156,6 +156,11 @@ suite =
                                 |> Expect.equal 59
                         ]
                         ()
+            , test "getLevels returns the correct list of levels for skills in a known table" <|
+                \_ ->
+                    mockTable
+                        |> Skills.getLevels [ "Hitpoints", "Hunter" ]
+                        |> Expect.equal [ 75, 59 ]
             , test "totalLevel returns the expected result for a known table" <|
                 \_ ->
                     mockTable
