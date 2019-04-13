@@ -1,7 +1,8 @@
-module Osrs.Skills exposing (Experience, Level, Skill, Table, emptyTable, experience, experienceAtLevel, experienceList, level, names, remainingExperience, totalExperience, updateTable)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experience, experienceAtLevel, experienceList, level, levelLookup, names, remainingExperience, totalExperience, totalLevel, updateTable)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
+import Dict.Extra
 
 
 type alias Skill =
@@ -87,47 +88,69 @@ totalExperience table =
         |> List.sum
 
 
+totalLevel : Table -> Level
+totalLevel =
+    Debug.todo "write impementation"
+
+
 remainingExperience : Experience -> Experience
 remainingExperience xp =
-    experienceAtLevel (level xp + 1)
-        -- default to 200m xp as the next level
-        |> Maybe.withDefault 200000000
-        |> (\nextXp -> nextXp - xp)
+    let
+        nextLvlXp =
+            experienceAtLevel (level xp + 1)
+                |> Maybe.withDefault 200000000
+    in
+    nextLvlXp - xp
 
 
 experienceAtLevel : Level -> Maybe Experience
 experienceAtLevel lvl =
-    Array.get (lvl - 1) levelLookup
-        |> Maybe.map Tuple.second
+    Dict.get lvl levelLookup
 
 
 level : Experience -> Level
 level xp =
-    Array.foldl
-        (\( lvl, milestone ) highestLvl ->
-            if xp >= milestone then
-                lvl
+    let
+        clipMinimum min_ x =
+            if x < min_ then
+                min_
 
             else
-                highestLvl
-        )
-        1
-        levelLookup
+                x
+    in
+    Dict.Extra.find (\lvl refXp -> refXp > xp) levelLookup
+        |> Maybe.map Tuple.first
+        |> Maybe.map (\nextLvl -> nextLvl - 1)
+        |> Maybe.map (clipMinimum 1)
+        |> Maybe.withDefault 126
+
+
+combatLevel : Table -> Float
+combatLevel table =
+    Debug.todo "write implementation"
 
 
 
 {- helper functions for level calculations -}
 
 
-levelLookup : Array ( Level, Experience )
+levelLookup : Dict Level Experience
 levelLookup =
-    -- NOTE it may make more sense to hardcode the array instead of generating it
+    -- NOTE it may be worthwhile to hardcode the array instead of generating it
     let
-        calculateXp index =
-            List.range 1 index
+        calculateXp lvl =
+            -- TODO find a quicker way to calculate this than creating a range
+            List.range 1 (lvl - 1)
                 |> List.map (toFloat >> (\x -> x + 300 * 2 ^ (x / 7) |> floor))
                 |> List.sum
                 |> (\x -> x // 4)
-                |> Tuple.pair (index + 1)
+
+        insertEntries lvl dict =
+            if lvl <= 126 then
+                insertEntries (lvl + 1) dict
+                    |> Dict.insert lvl (calculateXp lvl)
+
+            else
+                dict
     in
-    Array.initialize 126 calculateXp
+    insertEntries 1 Dict.empty

@@ -103,8 +103,8 @@ suite =
                         ()
             , test "remainingExperience returns the xp til 200m above virtual level 126" <|
                 \_ ->
-                    Skills.remainingExperience 195000000
-                        |> Expect.equal 5000000
+                    Skills.remainingExperience 199999999
+                        |> Expect.equal 1
             , test "level returns the correct skill levels for skills in a known table" <|
                 \_ ->
                     Expect.all
