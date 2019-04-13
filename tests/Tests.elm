@@ -1,6 +1,6 @@
 module Tests exposing (suite)
 
-import Expect exposing (Expectation)
+import Expect exposing (Expectation, FloatingPointTolerance(..))
 import Fuzz exposing (Fuzzer, int, list, string)
 import Osrs.Skills as Skills
 import Test exposing (..)
@@ -14,11 +14,11 @@ suite =
                 Skills.emptyTable
                     |> Skills.experienceList
                     |> Expect.equal (List.repeat (List.length Skills.names) 0)
-        , test "updateTable |> experience returns the correct xp in the updated table" <|
+        , test "updateExperience |> experience returns the correct xp in the updated table" <|
             \_ ->
                 Skills.emptyTable
-                    |> Skills.updateTable "Attack" 5000
-                    |> Skills.experience "Attack"
+                    |> Skills.updateExperience "Attack" 5000
+                    |> Skills.getExperience "Attack"
                     |> Expect.equal 5000
         , test "experienceAtLevel returns the correct xp for known levels" <|
             \_ ->
@@ -48,32 +48,55 @@ suite =
                             |> Expect.equal Nothing
                     ]
                     ()
+        , test "level returns the correct levels for edge-cases" <|
+            \_ ->
+                Expect.all
+                    [ \_ ->
+                        Skills.level -1
+                            |> Expect.equal 1
+                    , \_ ->
+                        Skills.level 0
+                            |> Expect.equal 1
+                    , \_ ->
+                        Skills.level 1
+                            |> Expect.equal 1
+                    , \_ ->
+                        Skills.level 188884740
+                            |> Expect.equal 126
+                    , \_ ->
+                        Skills.level 200000000
+                            |> Expect.equal 126
+                    , \_ ->
+                        Skills.level 200000001
+                            |> Expect.equal 126
+                    ]
+                    ()
         , let
             mockTable =
                 Skills.emptyTable
-                    |> Skills.updateTable "Attack" 743664
-                    |> Skills.updateTable "Defence" 712396
-                    |> Skills.updateTable "Strength" 1560454
-                    |> Skills.updateTable "Hitpoints" 1251121
-                    |> Skills.updateTable "Ranged" 800212
-                    |> Skills.updateTable "Prayer" 334994
-                    |> Skills.updateTable "Magic" 653790
-                    |> Skills.updateTable "Cooking" 824650
-                    |> Skills.updateTable "Woodcutting" 1177033
-                    |> Skills.updateTable "Fletching" 782815
-                    |> Skills.updateTable "Fishing" 625917
-                    |> Skills.updateTable "Firemaking" 834561
-                    |> Skills.updateTable "Crafting" 657204
-                    |> Skills.updateTable "Smithing" 203301
-                    |> Skills.updateTable "Mining" 434723
-                    |> Skills.updateTable "Herblore" 201645
-                    |> Skills.updateTable "Agility" 751122
-                    |> Skills.updateTable "Thieving" 339774
-                    |> Skills.updateTable "Slayer" 552844
-                    |> Skills.updateTable "Farming" 603234
-                    |> Skills.updateTable "Runecraft" 213745
-                    |> Skills.updateTable "Hunter" 248541
-                    |> Skills.updateTable "Construction" 129927
+                    |> Skills.updateExperience "Attack" 743664
+                    |> Skills.updateExperience "Defence" 712396
+                    |> Skills.updateExperience "Strength" 1560454
+                    |> Skills.updateExperience "Hitpoints" 1251121
+                    |> Skills.updateExperience "Ranged" 800212
+                    |> Skills.updateExperience "Prayer" 334994
+                    |> Skills.updateExperience "Magic" 653790
+                    |> Skills.updateExperience "Cooking" 824650
+                    |> Skills.updateExperience "Woodcutting" 1177033
+                    |> Skills.updateExperience "Fletching" 782815
+                    |> Skills.updateExperience "Fishing" 625917
+                    |> Skills.updateExperience "Firemaking" 834561
+                    |> Skills.updateExperience "Crafting" 657204
+                    |> Skills.updateExperience "Smithing" 203301
+                    |> Skills.updateExperience "Mining" 434723
+                    |> Skills.updateExperience "Herblore" 201645
+                    |> Skills.updateExperience "Agility" 751122
+                    |> Skills.updateExperience "Thieving" 339774
+                    |> Skills.updateExperience "Slayer" 552844
+                    |> Skills.updateExperience "Farming" 603234
+                    |> Skills.updateExperience "Runecraft" 213745
+                    |> Skills.updateExperience "Hunter" 248541
+                    |> Skills.updateExperience "Construction" 129927
           in
           describe "Tests using a known `Table`"
             [ test "totalExperience returns the expected result for a known table" <|
@@ -86,17 +109,17 @@ suite =
                     Expect.all
                         [ \_ ->
                             mockTable
-                                |> Skills.experience "Hitpoints"
+                                |> Skills.getExperience "Hitpoints"
                                 |> Skills.remainingExperience
                                 |> Expect.equal 85322
                         , \_ ->
                             mockTable
-                                |> Skills.experience "Prayer"
+                                |> Skills.getExperience "Prayer"
                                 |> Skills.remainingExperience
                                 |> Expect.equal 33605
                         , \_ ->
                             mockTable
-                                |> Skills.experience "Smithing"
+                                |> Skills.getExperience "Smithing"
                                 |> Skills.remainingExperience
                                 |> Expect.equal 21165
                         ]
@@ -105,20 +128,43 @@ suite =
                 \_ ->
                     Skills.remainingExperience 199999999
                         |> Expect.equal 1
-            , test "level returns the correct skill levels for skills in a known table" <|
+            , test "level returns the correct levels for skills in a known table" <|
                 \_ ->
                     Expect.all
                         [ \_ ->
                             mockTable
-                                |> Skills.experience "Hitpoints"
+                                |> Skills.getExperience "Hitpoints"
                                 |> Skills.level
                                 |> Expect.equal 75
                         , \_ ->
                             mockTable
-                                |> Skills.experience "Hunter"
+                                |> Skills.getExperience "Hunter"
                                 |> Skills.level
                                 |> Expect.equal 59
                         ]
                         ()
+            , test "getLevel returns the correct levels for skills in a known table" <|
+                \_ ->
+                    Expect.all
+                        [ \_ ->
+                            mockTable
+                                |> Skills.getLevel "Hitpoints"
+                                |> Expect.equal 75
+                        , \_ ->
+                            mockTable
+                                |> Skills.getLevel "Hunter"
+                                |> Expect.equal 59
+                        ]
+                        ()
+            , test "totalLevel returns the expected result for a known table" <|
+                \_ ->
+                    mockTable
+                        |> Skills.totalLevel
+                        |> Expect.equal 1524
+            , test "combatLevel returns the expected result for a known table" <|
+                \_ ->
+                    mockTable
+                        |> Skills.combatLevel
+                        |> Expect.within (Absolute 0.0001) 91.525
             ]
         ]

@@ -1,4 +1,4 @@
-module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experience, experienceAtLevel, experienceList, level, levelLookup, names, remainingExperience, totalExperience, totalLevel, updateTable)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, level, names, remainingExperience, totalExperience, totalLevel, updateExperience)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -57,8 +57,8 @@ emptyTable =
         |> Table
 
 
-updateTable : Skill -> Experience -> Table -> Table
-updateTable skill xp ((Table dict) as table) =
+updateExperience : Skill -> Experience -> Table -> Table
+updateExperience skill xp ((Table dict) as table) =
     if List.member skill names then
         -- if given a valid skill name, update the xp entry
         Table (Dict.insert skill xp dict)
@@ -68,8 +68,8 @@ updateTable skill xp ((Table dict) as table) =
         table
 
 
-experience : Skill -> Table -> Experience
-experience skill (Table dict) =
+getExperience : Skill -> Table -> Experience
+getExperience skill (Table dict) =
     Dict.get skill dict
         -- if the skill name is invalid, return 0 xp by default
         -- note: this default behavior is to reduce API complexity and should
@@ -77,35 +77,10 @@ experience skill (Table dict) =
         |> Maybe.withDefault 0
 
 
-experienceList : Table -> List Experience
-experienceList (Table dict) =
-    Dict.values dict
-
-
-totalExperience : Table -> Experience
-totalExperience table =
-    experienceList table
-        |> List.sum
-
-
-totalLevel : Table -> Level
-totalLevel =
-    Debug.todo "write impementation"
-
-
-remainingExperience : Experience -> Experience
-remainingExperience xp =
-    let
-        nextLvlXp =
-            experienceAtLevel (level xp + 1)
-                |> Maybe.withDefault 200000000
-    in
-    nextLvlXp - xp
-
-
-experienceAtLevel : Level -> Maybe Experience
-experienceAtLevel lvl =
-    Dict.get lvl levelLookup
+getLevel : Skill -> Table -> Level
+getLevel skill table =
+    getExperience skill table
+        |> level
 
 
 level : Experience -> Level
@@ -125,13 +100,84 @@ level xp =
         |> Maybe.withDefault 126
 
 
+experienceList : Table -> List Experience
+experienceList (Table dict) =
+    Dict.values dict
+
+
+totalExperience : Table -> Experience
+totalExperience table =
+    experienceList table
+        |> List.sum
+
+
+totalLevel : Table -> Level
+totalLevel table =
+    experienceList table
+        |> List.map level
+        |> List.sum
+
+
+experienceAtLevel : Level -> Maybe Experience
+experienceAtLevel lvl =
+    Dict.get lvl levelLookup
+
+
+remainingExperience : Experience -> Experience
+remainingExperience xp =
+    let
+        nextLvlXp =
+            experienceAtLevel (level xp + 1)
+                |> Maybe.withDefault 200000000
+    in
+    nextLvlXp - xp
+
+
 combatLevel : Table -> Float
 combatLevel table =
-    Debug.todo "write implementation"
+    let
+        prayerLvl =
+            getLevel "Prayer" table
+
+        hitpointsLvl =
+            getLevel "Hitpoints" table
+
+        defenceLvl =
+            getLevel "Defence" table
+
+        strengthLvl =
+            getLevel "Strength" table
+
+        attackLvl =
+            getLevel "Attack" table
+
+        magicLvl =
+            getLevel "Magic" table
+
+        rangedLvl =
+            getLevel "Ranged" table
+
+        baseTerm =
+            toFloat (prayerLvl // 2 + hitpointsLvl + defenceLvl) / 4
+
+        meleeTerm =
+            toFloat (attackLvl + strengthLvl) * 0.325
+
+        rangedTerm =
+            toFloat (rangedLvl // 2 + rangedLvl) * 0.325
+
+        magicTerm =
+            toFloat (magicLvl // 2 + magicLvl) * 0.325
+
+        maxTerm =
+            List.maximum [ meleeTerm, rangedTerm, magicTerm ]
+                |> Maybe.withDefault 0
+    in
+    baseTerm + maxTerm
 
 
 
-{- helper functions for level calculations -}
+{- Helper functions -}
 
 
 levelLookup : Dict Level Experience
