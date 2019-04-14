@@ -191,10 +191,7 @@ levelLookup =
     -- NOTE it may be worthwhile to hardcode the array instead of generating it
     let
         calculateXp lvl =
-            -- TODO find a quicker way to calculate this than creating a range
-            List.range 1 (lvl - 1)
-                |> List.map (toFloat >> (\x -> x + 300 * 2 ^ (x / 7) |> floor))
-                |> List.sum
+            sigma 1 (lvl - 1) (toFloat >> (\x -> floor (x + 300 * 2 ^ (x / 7))))
                 |> (\x -> x // 4)
 
         insertEntries lvl dict =
@@ -206,3 +203,19 @@ levelLookup =
                 dict
     in
     insertEntries 1 Dict.empty
+
+
+sigma : Int -> Int -> (Int -> number) -> number
+sigma x_ maxX_ f_ =
+    let
+        sigmaHelper : Int -> Int -> number -> (Int -> number) -> number
+        sigmaHelper x maxX acc f =
+            if x <= maxX then
+                -- this call will be tail-call optimized to avoid accumulating
+                -- stack frames
+                sigmaHelper (x + 1) maxX (acc + f x) f
+
+            else
+                acc
+    in
+    sigmaHelper x_ maxX_ 0 f_
