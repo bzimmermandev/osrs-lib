@@ -1,4 +1,4 @@
-module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, getLevels, level, names, remainingExperience, totalExperience, totalLevel, updateExperience)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, getLevels, level, names, remainingExperience, toDict, totalExperience, totalLevel, updateExperience)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -68,12 +68,22 @@ updateExperience skill xp ((Table dict) as table) =
         table
 
 
+toDict : Table -> Dict Skill Experience
+toDict (Table dict) =
+    dict
+
+
+experienceList : Table -> List Experience
+experienceList (Table dict) =
+    Dict.values dict
+
+
 getExperience : Skill -> Table -> Experience
 getExperience skill (Table dict) =
     Dict.get skill dict
         -- if the skill name is invalid, return 0 xp by default
-        -- note: this default behavior is to reduce API complexity and should
-        --       be sufficient if you're relying on strings from `names` only
+        -- NOTE this default behavior is to reduce API complexity and should
+        --      be sufficient if you're relying on strings from `names` only
         |> Maybe.withDefault 0
 
 
@@ -104,11 +114,6 @@ level xp =
         |> Maybe.map (\nextLvl -> nextLvl - 1)
         |> Maybe.map (clipMinimum 1)
         |> Maybe.withDefault 126
-
-
-experienceList : Table -> List Experience
-experienceList (Table dict) =
-    Dict.values dict
 
 
 totalExperience : Table -> Experience
