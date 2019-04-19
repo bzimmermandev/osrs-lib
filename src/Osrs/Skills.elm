@@ -1,6 +1,5 @@
 module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, getLevels, level, names, remainingExperience, toDict, totalExperience, totalLevel, updateExperience)
 
-import Array exposing (Array)
 import Dict exposing (Dict)
 import Dict.Extra
 
@@ -102,14 +101,14 @@ getLevels skills table =
 level : Experience -> Level
 level xp =
     let
-        clipMinimum min_ x =
-            if x < min_ then
-                min_
+        clipMinimum minimum x =
+            if x < minimum then
+                minimum
 
             else
                 x
     in
-    Dict.Extra.find (\lvl refXp -> refXp > xp) levelLookup
+    Dict.Extra.find (\_ refXp -> refXp > xp) levelLookup
         |> Maybe.map Tuple.first
         |> Maybe.map (\nextLvl -> nextLvl - 1)
         |> Maybe.map (clipMinimum 1)
@@ -193,7 +192,7 @@ combatLevel table =
 
 levelLookup : Dict Level Experience
 levelLookup =
-    -- NOTE it may be worthwhile to hardcode the array instead of generating it
+    -- NOTE it may be worthwhile to hardcode the LUT instead of generating it
     let
         calculateXp lvl =
             sigma 1 (lvl - 1) (toFloat >> (\x -> floor (x + 300 * 2 ^ (x / 7))))
@@ -211,16 +210,16 @@ levelLookup =
 
 
 sigma : Int -> Int -> (Int -> number) -> number
-sigma x_ maxX_ f_ =
-    let
-        sigmaHelper : Int -> Int -> number -> (Int -> number) -> number
-        sigmaHelper x maxX acc f =
-            if x <= maxX then
-                -- this call will be tail-call optimized to avoid accumulating
-                -- stack frames
-                sigmaHelper (x + 1) maxX (acc + f x) f
+sigma x maxX f =
+    sigmaHelper x maxX 0 f
 
-            else
-                acc
-    in
-    sigmaHelper x_ maxX_ 0 f_
+
+sigmaHelper : Int -> Int -> number -> (Int -> number) -> number
+sigmaHelper x maxX acc f =
+    if x <= maxX then
+        -- this call will be tail-call optimized to avoid accumulating
+        -- stack frames
+        sigmaHelper (x + 1) maxX (acc + f x) f
+
+    else
+        acc
