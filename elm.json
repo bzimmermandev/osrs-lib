@@ -1,6 +1,6 @@
 {
     "type": "package",
-    "name": "hammerforgedcode/osrs-lib",
+    "name": "bzimmermandev/osrs-lib",
     "summary": "A library of useful functions and data models for the game Old School RuneScape",
     "license": "MIT",
     "version": "1.0.0",
