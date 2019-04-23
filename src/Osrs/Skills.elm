@@ -1,4 +1,4 @@
-module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, getExperience, getLevel, getLevels, level, names, remainingExperience, toDict, totalExperience, totalLevel, updateExperience)
+module Osrs.Skills exposing (Experience, Level, Skill, Table, combatLevel, emptyTable, experienceAtLevel, experienceList, get, getLevel, getLevels, level, names, remainingExperience, toDict, totalExperience, totalLevel, update)
 
 import Dict exposing (Dict)
 import Dict.Extra
@@ -56,8 +56,8 @@ emptyTable =
         |> Table
 
 
-updateExperience : Skill -> Experience -> Table -> Table
-updateExperience skill xp ((Table dict) as table) =
+update : Skill -> Experience -> Table -> Table
+update skill xp ((Table dict) as table) =
     if List.member skill names then
         -- if given a valid skill name, update the xp entry
         Table (Dict.insert skill xp dict)
@@ -77,8 +77,8 @@ experienceList (Table dict) =
     Dict.values dict
 
 
-getExperience : Skill -> Table -> Experience
-getExperience skill (Table dict) =
+get : Skill -> Table -> Experience
+get skill (Table dict) =
     Dict.get skill dict
         -- if the skill name is invalid, return 0 xp by default
         -- NOTE this default behavior is to reduce API complexity and should
@@ -88,7 +88,7 @@ getExperience skill (Table dict) =
 
 getLevel : Skill -> Table -> Level
 getLevel skill table =
-    getExperience skill table
+    get skill table
         |> level
 
 
@@ -217,8 +217,7 @@ sigma x maxX f =
 sigmaHelper : Int -> Int -> number -> (Int -> number) -> number
 sigmaHelper x maxX acc f =
     if x <= maxX then
-        -- this call will be tail-call optimized to avoid accumulating
-        -- stack frames
+        -- this will be tail-call optimized to avoid accumulating stack frames
         sigmaHelper (x + 1) maxX (acc + f x) f
 
     else

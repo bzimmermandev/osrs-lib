@@ -13,29 +13,29 @@ import Test exposing (..)
 
 mockTable =
     Skills.emptyTable
-        |> Skills.updateExperience "Attack" 743664
-        |> Skills.updateExperience "Defence" 712396
-        |> Skills.updateExperience "Strength" 1560454
-        |> Skills.updateExperience "Hitpoints" 1251121
-        |> Skills.updateExperience "Ranged" 800212
-        |> Skills.updateExperience "Prayer" 334994
-        |> Skills.updateExperience "Magic" 653790
-        |> Skills.updateExperience "Cooking" 824650
-        |> Skills.updateExperience "Woodcutting" 1177033
-        |> Skills.updateExperience "Fletching" 782815
-        |> Skills.updateExperience "Fishing" 625917
-        |> Skills.updateExperience "Firemaking" 834561
-        |> Skills.updateExperience "Crafting" 657204
-        |> Skills.updateExperience "Smithing" 203301
-        |> Skills.updateExperience "Mining" 434723
-        |> Skills.updateExperience "Herblore" 201645
-        |> Skills.updateExperience "Agility" 751122
-        |> Skills.updateExperience "Thieving" 339774
-        |> Skills.updateExperience "Slayer" 552844
-        |> Skills.updateExperience "Farming" 603234
-        |> Skills.updateExperience "Runecraft" 213745
-        |> Skills.updateExperience "Hunter" 248541
-        |> Skills.updateExperience "Construction" 129927
+        |> Skills.update "Attack" 743664
+        |> Skills.update "Defence" 712396
+        |> Skills.update "Strength" 1560454
+        |> Skills.update "Hitpoints" 1251121
+        |> Skills.update "Ranged" 800212
+        |> Skills.update "Prayer" 334994
+        |> Skills.update "Magic" 653790
+        |> Skills.update "Cooking" 824650
+        |> Skills.update "Woodcutting" 1177033
+        |> Skills.update "Fletching" 782815
+        |> Skills.update "Fishing" 625917
+        |> Skills.update "Firemaking" 834561
+        |> Skills.update "Crafting" 657204
+        |> Skills.update "Smithing" 203301
+        |> Skills.update "Mining" 434723
+        |> Skills.update "Herblore" 201645
+        |> Skills.update "Agility" 751122
+        |> Skills.update "Thieving" 339774
+        |> Skills.update "Slayer" 552844
+        |> Skills.update "Farming" 603234
+        |> Skills.update "Runecraft" 213745
+        |> Skills.update "Hunter" 248541
+        |> Skills.update "Construction" 129927
 
 
 
@@ -53,8 +53,8 @@ suite =
         , test "updateExperience |> getExperience returns the correct XP in the updated table" <|
             \_ ->
                 Skills.emptyTable
-                    |> Skills.updateExperience "Attack" 5000
-                    |> Skills.getExperience "Attack"
+                    |> Skills.update "Attack" 5000
+                    |> Skills.get "Attack"
                     |> Expect.equal 5000
         , test "toDict returns a properly-sized dict" <|
             \_ ->
@@ -125,17 +125,17 @@ suite =
                     Expect.all
                         [ \_ ->
                             mockTable
-                                |> Skills.getExperience "Hitpoints"
+                                |> Skills.get "Hitpoints"
                                 |> Skills.remainingExperience
                                 |> Expect.equal 85322
                         , \_ ->
                             mockTable
-                                |> Skills.getExperience "Prayer"
+                                |> Skills.get "Prayer"
                                 |> Skills.remainingExperience
                                 |> Expect.equal 33605
                         , \_ ->
                             mockTable
-                                |> Skills.getExperience "Smithing"
+                                |> Skills.get "Smithing"
                                 |> Skills.remainingExperience
                                 |> Expect.equal 21165
                         ]
@@ -145,12 +145,12 @@ suite =
                     Expect.all
                         [ \_ ->
                             mockTable
-                                |> Skills.getExperience "Hitpoints"
+                                |> Skills.get "Hitpoints"
                                 |> Skills.level
                                 |> Expect.equal 75
                         , \_ ->
                             mockTable
-                                |> Skills.getExperience "Hunter"
+                                |> Skills.get "Hunter"
                                 |> Skills.level
                                 |> Expect.equal 59
                         ]
