@@ -4,20 +4,37 @@ import Dict exposing (Dict)
 import Dict.Extra
 
 
+
+--- TYPES ---
+
+
+{-| `Skill` is just a convenient alias for `String`, but in the context of this module, it is specifically a `String` containing the (capitalized) name of a skill in the RuneScape Old School skill table. _e.g._, `"Woodcutting"`.
+
+Use `Osrs.Skills.names` for a list of all of the skills currently in the game.
+
+-}
 type alias Skill =
     String
 
 
+{-| `Experience` is an alias for `Int`, and represents experience (XP) for a skill in the game. The alias is used to differentiate an `Int` representing skill XP and an `Int` representing a skill level.
+-}
 type alias Experience =
     Int
 
 
+{-| `Level` is an alias for `Int`, and represents a skill level in the game. The alias is used to differentiate an `Int` representing a skill level and an `Int` representing skill XP.
+-}
 type alias Level =
     Int
 
 
 type Table
     = Table (Dict Skill Experience)
+
+
+
+--- API ---
 
 
 names : List Skill
@@ -187,7 +204,52 @@ combatLevel table =
 
 
 
-{- Helper functions -}
+--- HTTP API ---
+{-
+   {- NOTE These were originally written to fetch and decode a Table from the
+     OSRS Hiscores API, but Access-Control-Allow-Origin is not set in the response
+     header, meaning that Jagex needs to allow x-origin requests for this API or
+     some other hackey solution needs to be written separately from this module
+     that allows for these functions to be used. I left the Cmd and the response
+     parsing algorithm in case anyone should want to experiment.
+
+     Requires:
+       `elm install elm/http`
+       `import Http`, `import Result exposing (Result)`
+   -}
+
+   fetch : String -> (String -> Result Http.Error Table -> msg) -> Cmd msg
+   fetch player messageConstructor =
+      let
+          endpoint =
+              "https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws"
+                  ++ "?player="
+                  ++ player
+      in
+      Http.get
+          { url = endpoint
+          , expect = Http.expectString (Result.map decodeTable >> messageConstructor player)
+          }
+
+
+   decodeTable : String -> Table
+   decodeTable string =
+      string
+          |> String.split " "
+          |> List.drop 1
+          |> List.take 23
+          |> List.map (String.split ",")
+          |> List.concatMap (List.drop 2)
+          |> List.map String.toInt
+          |> List.map (Maybe.withDefault 0)
+          |> List.map2 Tuple.pair names
+          |> Dict.fromList
+          |> Table
+
+
+
+-}
+--- HELPER FUNCTIONS ---
 
 
 levelLookup : Dict Level Experience
