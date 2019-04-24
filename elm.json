@@ -5,11 +5,12 @@
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
-        "Osrs.Skills"
+        "Osrs.SkillTable"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
         "elm/core": "1.0.0 <= v < 2.0.0",
+        "elm/http": "2.0.0 <= v < 3.0.0",
         "elm-community/dict-extra": "2.4.0 <= v < 3.0.0"
     },
     "test-dependencies": {
